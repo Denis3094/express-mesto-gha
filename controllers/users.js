@@ -15,19 +15,14 @@ module.exports.getUsers = (req, res) => {
 
 module.exports.getUser = (req, res) => {
   User.findById(req.params.userId)
-    .then((user) => {
-      if (user) {
-        res.send(user);
-      } else {
-        res.status(404).send({ message: 'Not Found' });
-      }
-    })
+    .orFail(() => new Error('Not Found'))
+    .then((user) => res.send(user))
     .catch((err) => {
-      if (err.message === 'CastError') {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные при получении пользователя.' });
-      } else {
-        res.status(SERVER_ERROR).send({ message: 'Ошибка по-умолчанию.' });
+      if (err.message === 'Not Found') {
+        res.status(NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден.' });
+        return;
       }
+      res.status(SERVER_ERROR).send({ message: 'Ошибка по-умолчанию.' });
     });
 };
 
@@ -46,21 +41,46 @@ module.exports.createUser = (req, res) => {
 
 module.exports.updateUserProfile = (req, res) => {
   const { name, about } = req.body;
-  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
-    .orFail(() => new Error('Not Found'))
-    .then((userInfo) => res.send(userInfo))
+  User.findByIdAndUpdate(
+    req.user._id,
+    { name, about },
+    { new: true, runValidators: true },
+  )
+    .then((user) => {
+      if (!user) {
+        res.status(NOT_FOUND).send({ message: 'Пользователь не найден' });
+      } else {
+        res.send({ data: user });
+      }
+    })
     .catch((err) => {
-      if (err.name === 'ValidationError' || err.name === 'CastError') {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные при обновлении профиля.' });
-        return;
+      if (err.name === 'ValidationError') {
+        res.status(BAD_REQUEST).send({
+          message: 'Переданы некорректные данные при обновлении профиля.',
+        });
+      } else {
+        res.status(SERVER_ERROR).send({ message: 'Ошибка по-умолчанию.' });
       }
-      if (err.message === 'Not Found') {
-        res.status(NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден.' });
-        return;
-      }
-      res.status(SERVER_ERROR).send({ message: 'Ошибка по-умолчанию.' });
     });
 };
+
+// module.exports.updateUserProfile = (req, res) => {
+//   const { name, about } = req.body;
+//   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
+//     .orFail(() => new Error('Not Found'))
+//     .then((userInfo) => res.send(userInfo))
+//     .catch((err) => {
+//       if (err.name === 'ValidationError' || err.name === 'CastError') {
+//         res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные при обновлении профиля.' });
+//         return;
+//       }
+//       if (err.message === 'Not Found') {
+//         res.status(NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден.' });
+//         return;
+//       }
+//       res.status(SERVER_ERROR).send({ message: 'Ошибка по-умолчанию.' });
+//     });
+// };
 
 module.exports.updateUserAvatar = (req, res) => {
   const { avatar } = req.body;
