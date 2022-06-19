@@ -38,7 +38,7 @@ module.exports.deleteCard = (req, res) => {
       if (!card) {
         res.status(NOT_FOUND).send({ message: 'Not Found' });
       } else {
-        res.status(200).send({ data: card });
+        res.send({ data: card });
       }
     })
     .catch((err) => {
@@ -55,8 +55,6 @@ module.exports.likeCard = (req, res) => Card.findByIdAndUpdate(
   { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
   { new: true },
 )
-  .populate('owner')
-  .orFail(() => new Error('Not Found'))
   .then((card) => {
     if (!card) {
       res.status(NOT_FOUND).send({ message: 'Not Found' });
@@ -77,12 +75,11 @@ module.exports.dislikeCard = (req, res) => Card.findByIdAndUpdate(
   { $pull: { likes: req.user._id } }, // убрать _id из массива
   { new: true },
 )
-  .orFail(() => new Error('Not Found'))
   .then((card) => {
     if (!card) {
       res.status(NOT_FOUND).send({ message: 'Not Found' });
     } else {
-      res.status(200).send({ data: card });
+      res.send({ data: card });
     }
   })
   .catch((err) => {
