@@ -1,4 +1,4 @@
-const User = require('../models/user');
+const { User } = require('../models/user');
 // const { BAD_REQUEST, NOT_FOUND, SERVER_ERROR } = require('../constants/errors');
 
 module.exports.getUsers = (req, res) => {
@@ -53,7 +53,7 @@ module.exports.updateUserProfile = (req, res) => {
       if (!user) {
         res.status(404).send({ message: 'Пользователь не найден' });
       } else {
-        res.send({ data: user });
+        res.send(user);
       }
     })
     .catch((err) => {
@@ -79,7 +79,7 @@ module.exports.updateUserAvatar = (req, res) => {
       if (!user) {
         res.status(404).send({ message: 'Пользователь не найден' });
       } else {
-        res.send({ data: user });
+        res.send(user);
       }
     })
     .catch((err) => {
