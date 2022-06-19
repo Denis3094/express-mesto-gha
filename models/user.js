@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+
 const userSchema = new mongoose.Schema({
   name: { // у пользователя есть имя — опишем требования к имени в схеме:
     type: String, // имя — это строка
@@ -16,6 +17,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-})
+});
 
 module.exports.User = mongoose.model('user', userSchema);

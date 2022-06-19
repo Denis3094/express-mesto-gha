@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+
 const cardSchema = new mongoose.Schema({
   name: { // у пользователя есть имя — опишем требования к имени в схеме:
     type: String, // имя — это строка
