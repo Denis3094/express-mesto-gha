@@ -1,5 +1,5 @@
 const { Card } = require('../models/card');
-const { BAD_REQUEST, SERVER_ERROR } = require('../constants/errors');
+const { BAD_REQUEST, NOT_FOUND, SERVER_ERROR } = require('../constants/errors');
 
 module.exports.getCards = (req, res) => {
   Card.find({})
@@ -35,7 +35,13 @@ module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
     .orFail(() => new Error('Not Found'))
     .populate('owner')
-    .then((card) => res.send(card))
+    .then((card) => {
+      if (card) {
+        res.send(card);
+      } else {
+        res.status(NOT_FOUND).send({ message: 'Not Found' });
+      }
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные для удаления карточки.' });
@@ -45,12 +51,6 @@ module.exports.deleteCard = (req, res) => {
     });
 };
 
-// if (err.message === 'Not Found') {
-//   res
-//     .status(NOT_FOUND)
-//     .send({ message: 'Передан несуществующий _id карточки.' });
-// }
-
 module.exports.likeCard = (req, res) => Card.findByIdAndUpdate(
   req.params.cardId,
   { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
@@ -58,7 +58,13 @@ module.exports.likeCard = (req, res) => Card.findByIdAndUpdate(
 )
   .populate('owner')
   .orFail(() => new Error('Not Found'))
-  .then((card) => res.send(card))
+  .then((card) => {
+    if (card) {
+      res.send(card);
+    } else {
+      res.status(NOT_FOUND).send({ message: 'Not Found' });
+    }
+  })
   .catch((err) => {
     if (err.name === 'CastError') {
       res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные для постановки лайка.' });
@@ -72,9 +78,14 @@ module.exports.dislikeCard = (req, res) => Card.findByIdAndUpdate(
   { $pull: { likes: req.user._id } }, // убрать _id из массива
   { new: true },
 )
-  .populate('owner')
   .orFail(() => new Error('Not Found'))
-  .then((card) => res.send(card))
+  .then((card) => {
+    if (card) {
+      res.send(card);
+    } else {
+      res.status(NOT_FOUND).send({ message: 'Not Found' });
+    }
+  })
   .catch((err) => {
     if (err.name === 'CastError') {
       res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные для снятии лайка.' });
