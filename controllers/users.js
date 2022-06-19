@@ -26,18 +26,21 @@ module.exports.getUser = (req, res) => {
 
 module.exports.createUser = (req, res) => {
   const { name, about, avatar } = req.body;
+
   User.create({ name, about, avatar })
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные при создании пользователя.' });
+      } else {
+        res.status(SERVER_ERROR).send({ message: 'Ошибка по-умолчанию.' });
       }
-      res.status(SERVER_ERROR).send({ message: 'Ошибка по-умолчанию.' });
     });
 };
 
 module.exports.updateUserProfile = (req, res) => {
   const { name, about } = req.body;
+
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .orFail(() => new Error('Not Found'))
     .then((userInfo) => res.send(userInfo))
@@ -56,6 +59,7 @@ module.exports.updateUserProfile = (req, res) => {
 
 module.exports.updateUserAvatar = (req, res) => {
   const { avatar } = req.body;
+
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .orFail(() => new Error('Not Found'))
     .then((userAvatar) => res.send(userAvatar))
