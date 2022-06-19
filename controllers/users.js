@@ -50,7 +50,7 @@ module.exports.updateUserProfile = (req, res) => {
       if (!user) {
         res.status(NOT_FOUND).send({ message: 'Пользователь не найден' });
       } else {
-        res.send({ data: user });
+        res.send(user);
       }
     })
     .catch((err) => {
