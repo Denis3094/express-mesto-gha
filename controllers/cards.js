@@ -17,7 +17,7 @@ module.exports.createCard = (req, res) => {
   Card.create({
     name, link, owner, likes,
   })
-    .then((card) => res.send(card))
+    .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res
@@ -37,7 +37,7 @@ module.exports.deleteCard = (req, res) => {
     .populate('owner')
     .then((card) => {
       if (card) {
-        res.send(card);
+        res.send({ data: card });
       } else {
         res.status(NOT_FOUND).send({ message: 'Not Found' });
       }
@@ -60,7 +60,7 @@ module.exports.likeCard = (req, res) => Card.findByIdAndUpdate(
   .orFail(() => new Error('Not Found'))
   .then((card) => {
     if (card) {
-      res.send(card);
+      res.send({ data: card });
     } else {
       res.status(NOT_FOUND).send({ message: 'Not Found' });
     }
@@ -81,7 +81,7 @@ module.exports.dislikeCard = (req, res) => Card.findByIdAndUpdate(
   .orFail(() => new Error('Not Found'))
   .then((card) => {
     if (card) {
-      res.send(card);
+      res.send({ data: card });
     } else {
       res.status(NOT_FOUND).send({ message: 'Not Found' });
     }
