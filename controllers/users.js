@@ -53,7 +53,7 @@ module.exports.updateUserProfile = (req, res) => {
       if (!user) {
         res.status(404).send({ message: 'Пользователь не найден' });
       } else {
-        res.send(user);
+        res.send({ data: user });
       }
     })
     .catch((err) => {
@@ -79,7 +79,7 @@ module.exports.updateUserAvatar = (req, res) => {
       if (!user) {
         res.status(404).send({ message: 'Пользователь не найден' });
       } else {
-        res.send(user);
+        res.send({ data: user });
       }
     })
     .catch((err) => {
