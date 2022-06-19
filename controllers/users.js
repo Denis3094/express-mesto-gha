@@ -105,13 +105,33 @@ module.exports.getUsers = (req, res) => {
     });
 };
 
+// module.exports.getUser = (req, res) => {
+//   User.findById(req.params.userId)
+//     .then((user) => {
+//       if (!user) {
+//         res.status(404).send({ message: 'Пользователь не найден' });
+//       } else {
+//         res.send(user);
+//       }
+//     })
+//     .catch((err) => {
+//       if (err.name === 'CastError') {
+//         res.status(400).send({
+//           message: 'Переданны некорректные данные',
+//         });
+//       } else {
+//         res.status(500).send({ message: 'Ошибка сервера' });
+//       }
+//     });
+// };
+
 module.exports.getUser = (req, res) => {
   User.findById(req.params.userId)
     .orFail(() => new Error('Not Found'))
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.message === 'Not Found') {
-        res.status(NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден.' });
+        res.status(BAD_REQUEST).send({ message: 'Пользователь по указанному _id не найден.' });
         return;
       }
       res.status(SERVER_ERROR).send({ message: 'Ошибка по-умолчанию.' });
