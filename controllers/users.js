@@ -15,11 +15,11 @@ module.exports.getUser = (req, res) => {
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({
-          message: 'Переданы некорректные данные при запросе пользователя.',
-        });
+        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные при запросе пользователя.' });
+      } else if (err.message === 'Not Found') {
+        res.status(NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден.' });
       } else {
-        res.status(500).send({ message: 'Ошибка по-умолчанию.' });
+        res.status(SERVER_ERROR).send({ message: 'Ошибка по-умолчанию.' });
       }
     });
 };
