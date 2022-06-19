@@ -59,7 +59,7 @@ module.exports.likeCard = (req, res) => Card.findByIdAndUpdate(
     if (!card) {
       res.status(NOT_FOUND).send({ message: 'Not Found' });
     } else {
-      res.send({ data: card });
+      res.send(card);
     }
   })
   .catch((err) => {
@@ -79,7 +79,7 @@ module.exports.dislikeCard = (req, res) => Card.findByIdAndUpdate(
     if (!card) {
       res.status(NOT_FOUND).send({ message: 'Not Found' });
     } else {
-      res.send({ data: card });
+      res.send(card);
     }
   })
   .catch((err) => {
