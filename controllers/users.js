@@ -15,14 +15,19 @@ module.exports.getUsers = (req, res) => {
 
 module.exports.getUser = (req, res) => {
   User.findById(req.params.userId)
-    .orFail(() => new Error('Not Found'))
-    .then((user) => res.send(user))
-    .catch((err) => {
-      if (err.message === 'Not Found') {
-        res.status(NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден.' });
-        return;
+    .then((user) => {
+      if (user) {
+        res.send(user);
+      } else {
+        res.status(404).send({ message: 'Not Found' });
       }
-      res.status(SERVER_ERROR).send({ message: 'Ошибка по-умолчанию.' });
+    })
+    .catch((err) => {
+      if (err.message === 'CastError') {
+        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные при получении пользователя.' });
+      } else {
+        res.status(SERVER_ERROR).send({ message: 'Ошибка по-умолчанию.' });
+      }
     });
 };
 
