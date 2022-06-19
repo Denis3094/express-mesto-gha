@@ -11,20 +11,15 @@ module.exports.getUsers = (req, res) => {
 
 module.exports.getUser = (req, res) => {
   User.findById(req.params.userId)
-    .then((user) => {
-      if (!user) {
-        res.status(404).send({ message: 'Пользователь не найден' });
-      } else {
-        res.send(user);
-      }
-    })
+    .orFail(() => new Error('Not Found'))
+    .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(400).send({
-          message: 'Переданны некорректные данные',
+          message: 'Переданы некорректные данные при запросе пользователя.',
         });
       } else {
-        res.status(500).send({ message: 'Ошибка сервера' });
+        res.status(500).send({ message: 'Ошибка по-умолчанию.' });
       }
     });
 };
