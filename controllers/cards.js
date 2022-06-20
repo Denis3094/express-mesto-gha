@@ -4,7 +4,7 @@ const { BAD_REQUEST, NOT_FOUND, SERVER_ERROR } = require('../constants/errors');
 module.exports.getCards = (req, res) => {
   Card.find({})
     .populate('owner')
-    .then((cards) => res.send({ data: cards }))
+    .then((cards) => res.send(cards))
     .catch(() => res.status(SERVER_ERROR).send({ message: 'Ошибка по-умолчанию.' }));
 };
 
@@ -13,21 +13,15 @@ module.exports.createCard = (req, res) => {
   const owner = req.user._id;
   const likes = [];
 
-  console.log(req.user._id); // _id станет доступен
   Card.create({
     name, link, owner, likes,
   })
-    .then((cards) => res.send({ data: cards }))
+    .then((card) => res.send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res
-          .status(BAD_REQUEST)
-          .send({
-            message: 'Переданы некорректные данные при создании карточки.',
-          });
-      } else {
-        res.status(SERVER_ERROR).send({ message: 'Ошибка по-умолчанию.' });
+        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные при создании карточки.' });
       }
+      res.status(SERVER_ERROR).send({ message: 'Ошибка по-умолчанию.' });
     });
 };
 
