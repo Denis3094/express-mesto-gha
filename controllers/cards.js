@@ -27,20 +27,16 @@ module.exports.createCard = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
-    .populate('owner')
-    .then((card) => {
-      if (!card) {
-        res.status(NOT_FOUND).send({ message: 'Not Found' });
-      } else {
-        res.send({ data: card });
-      }
-    })
+    .orFail(() => new Error('Not Found'))
+    .then((card) => res.send(card))
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные для удаления карточки.' });
-      } else {
-        res.status(SERVER_ERROR).send({ message: 'Ошибка по-умолчанию.' });
       }
+      if (err.message === 'Not Found') {
+        res.status(NOT_FOUND).send({ message: 'Карточка с указанным _id не найдена.' });
+      }
+      res.status(SERVER_ERROR).send({ message: 'Ошибка по-умолчанию.' });
     });
 };
 
