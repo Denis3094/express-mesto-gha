@@ -47,13 +47,11 @@ module.exports.updateUserProfile = (req, res) => {
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
         res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные при обновлении профиля.' });
-        return;
-      }
-      if (err.message === 'Not Found') {
+      } else if (err.message === 'Not Found') {
         res.status(NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден.' });
-        return;
+      } else {
+        res.status(SERVER_ERROR).send({ message: 'Ошибка по-умолчанию.' });
       }
-      res.status(SERVER_ERROR).send({ message: 'Ошибка по-умолчанию.' });
     });
 };
 
