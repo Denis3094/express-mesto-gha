@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { regExpLink, regExpEmail } = require('../constants/regexp');
 
 const userSchema = new mongoose.Schema({
   name: { // у пользователя есть имя — опишем требования к имени в схеме:
@@ -16,16 +17,22 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
     required: true,
+    validate: {
+      validator: (value) => regExpLink.test(value),
+    },
   },
   email: {
     type: String,
     required: true,
     unique: true,
+    validate: {
+      validator: (value) => regExpEmail.test(value),
+    },
   },
   password: {
     type: String,
     required: true,
-    minlength: 4,
+    minlength: 3,
     select: false,
   },
 });

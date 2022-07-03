@@ -1,85 +1,131 @@
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const { User } = require('../models/user');
-const { BAD_REQUEST, NOT_FOUND, SERVER_ERROR } = require('../constants/errors');
+const NotFound = require('../constants/NotFound');
+const BadRequest = require('../constants/BadRequest');
+const Unauthorized = require('../constants/Unauthorized');
+const Conflict = require('../constants/Conflict');
 
-module.exports.getUsers = (req, res) => {
-  User.find({})
-    .then((users) => res.send(users))
-    .catch(() => {
-      res.status(SERVER_ERROR).send({ message: 'Ошибка по-умолчанию.' });
-    });
+module.exports.login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  User.findOne({ email }).select('+password')
+    .then((user) => {
+      if (!user) {
+        throw new Unauthorized('Неверный e-mail или пароль');
+      }
+      bcrypt.compare(password, user.password)
+        .then((correct) => {
+          if (!correct) {
+            throw new Unauthorized('Неверный e-mail или пароль');
+          }
+          const token = jwt.sign(
+            { _id: user._id },
+            'very-secret-key',
+          );
+          res.cookie('jwt', token, {
+            maxAge: 3600000 * 24 * 7,
+            httpOnly: true,
+            sameSite: true,
+          })
+            .send({
+              name: user.name,
+              about: user.about,
+              avatar: user.avatar,
+              email: user.email,
+              _id: user._id,
+            });
+        })
+        .catch(next);
+    })
+    .catch(next);
 };
 
-module.exports.getUser = (req, res) => {
+module.exports.getMe = (req, res, next) => {
+  User.findById(req.user._id)
+    .orFail(() => new NotFound('Пользователь по указанному _id не найден.'))
+    .then((me) => res.send(me))
+    .catch(next);
+};
+
+module.exports.getUsers = (req, res, next) => {
+  User.find({})
+    .then((users) => res.send(users))
+    .catch(next);
+};
+
+module.exports.getUser = (req, res, next) => {
   User.findById(req.params.userId)
-    .orFail(() => new Error('Not Found'))
+    .orFail(() => new NotFound('Пользователь по указанному _id не найден.'))
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные при запросе пользователя.' });
-      } else if (err.message === 'Not Found') {
-        res.status(NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден.' });
-      } else {
-        res.status(SERVER_ERROR).send({ message: 'Ошибка по-умолчанию.' });
+        next(new BadRequest('Переданы некорректные данные при запросе пользователя.'));
+        return;
       }
+      next(err);
     });
 };
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
 
-  bcrypt.hash(password, 10)
-    .then((hash) => User.create({
-      name, about, avatar, email, password: hash,
-    }))
-    .then((user) => res.send({
-      name: user.name,
-      about: user.about,
-      avatar: user.avatar,
-      email: user.email,
-      _id: user._id,
-    }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные при создании пользователя.' });
-      } else {
-        res.status(SERVER_ERROR).send({ message: 'Ошибка по-умолчанию.' });
+  User.findOne({ email })
+    .then((sameEmail) => {
+      if (sameEmail) {
+        throw new Conflict('Email уже зарегистрирован');
       }
-    });
+
+      bcrypt.hash(password, 10)
+        .then((hash) => User.create({
+          name, about, avatar, email, password: hash,
+        }))
+        .then((user) => res.send({
+          name: user.name,
+          about: user.about,
+          avatar: user.avatar,
+          email: user.email,
+          _id: user._id,
+        }))
+        .catch((err) => {
+          if (err.name === 'ValidationError') {
+            next(new BadRequest('Переданы некорректные данные при создании пользователя.'));
+            return;
+          }
+          next(err);
+        });
+    })
+    .catch(next);
 };
 
-module.exports.updateUserProfile = (req, res) => {
+module.exports.updateUserProfile = (req, res, next) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
-    .orFail(() => new Error('Not Found'))
+    .orFail(() => new NotFound('Пользователь по указанному _id не найден.'))
     .then((userInfo) => res.send(userInfo))
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные при обновлении профиля.' });
-      } else if (err.message === 'Not Found') {
-        res.status(NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден.' });
-      } else {
-        res.status(SERVER_ERROR).send({ message: 'Ошибка по-умолчанию.' });
+        next(new BadRequest('Переданы некорректные данные при обновлении профиля.'));
+        return;
       }
+      next(err);
     });
 };
 
-module.exports.updateUserAvatar = (req, res) => {
+module.exports.updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
-    .orFail(() => new Error('Not Found'))
+    .orFail(() => new NotFound('Пользователь по указанному _id не найден.'))
     .then((userAvatar) => res.send(userAvatar))
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные при обновлении аватара.' });
-      } else if (err.message === 'Not Found') {
-        res.status(NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден.' });
-      } else {
-        res.status(SERVER_ERROR).send({ message: 'Ошибка по-умолчанию.' });
+        next(new BadRequest('Переданы некорректные данные при обновлении аватара.'));
+        return;
       }
+      next(err);
     });
 };
