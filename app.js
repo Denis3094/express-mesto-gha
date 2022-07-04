@@ -2,7 +2,6 @@ const express = require('express');
 const { mongoose } = require('mongoose');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
-const helmet = require('helmet');
 const { Joi, celebrate, errors } = require('celebrate');
 
 require('dotenv').config();
@@ -24,7 +23,6 @@ const { handleError } = require('./middlewares/error');
 const { regExpLink } = require('./constants/regexp');
 const NotFound = require('./constants/NotFound');
 
-app.use(helmet());
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
