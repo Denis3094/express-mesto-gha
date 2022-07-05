@@ -4,8 +4,6 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const { Joi, celebrate, errors } = require('celebrate');
 
-require('dotenv').config();
-
 const { PORT = 3000 } = process.env;
 const app = express();
 
