@@ -5,13 +5,11 @@ const {
   getCards, createCard, deleteCard, likeCard, dislikeCard,
 } = require('../controllers/cards');
 
-const handlerValidation = () => {
-  celebrate({
-    params: Joi.object().keys({
-      cardId: Joi.string().required().hex().length(24),
-    }),
-  });
-};
+const handlerValidation = celebrate({
+  params: Joi.object().keys({
+    cardId: Joi.string().required().hex().length(24),
+  }),
+});
 
 cardsRouter.get('/', getCards);
 
