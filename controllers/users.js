@@ -43,7 +43,9 @@ module.exports.login = (req, res, next) => {
 
 module.exports.getMe = (req, res, next) => {
   User.findById(req.user._id)
-    .orFail(() => new NotFound('Пользователь по указанному _id не найден.'))
+    .orFail(() => {
+      throw new NotFound('Пользователь по указанному _id не найден.');
+    })
     .then((me) => res.send(me))
     .catch(next);
 };
@@ -56,7 +58,9 @@ module.exports.getUsers = (req, res, next) => {
 
 module.exports.getUser = (req, res, next) => {
   User.findById(req.params.userId)
-    .orFail(() => new NotFound('Пользователь по указанному _id не найден.'))
+    .orFail(() => {
+      throw new NotFound('Пользователь по указанному _id не найден.');
+    })
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -104,7 +108,9 @@ module.exports.updateUserProfile = (req, res, next) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
-    .orFail(() => new NotFound('Пользователь по указанному _id не найден.'))
+    .orFail(() => {
+      throw new NotFound('Пользователь по указанному _id не найден.');
+    })
     .then((userInfo) => res.send(userInfo))
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
@@ -119,7 +125,9 @@ module.exports.updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
-    .orFail(() => new NotFound('Пользователь по указанному _id не найден.'))
+    .orFail(() => {
+      throw new NotFound('Пользователь по указанному _id не найден.');
+    })
     .then((userAvatar) => res.send(userAvatar))
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
