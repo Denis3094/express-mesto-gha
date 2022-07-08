@@ -3,40 +3,22 @@ const jwt = require('jsonwebtoken');
 const { User } = require('../models/user');
 const NotFound = require('../constants/NotFound');
 const BadRequest = require('../constants/BadRequest');
-const Unauthorized = require('../constants/Unauthorized');
 const Conflict = require('../constants/Conflict');
+
+const { NODE_ENV, JWT_SECRET } = process.env;
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
-  User.findOne({ email }).select('+password')
+  User.findUserByCredentials(email, password)
     .then((user) => {
-      if (!user) {
-        throw new Unauthorized('Неверный e-mail или пароль');
-      }
-      bcrypt.compare(password, user.password)
-        .then((correct) => {
-          if (!correct) {
-            throw new Unauthorized('Неверный e-mail или пароль');
-          }
-          const token = jwt.sign(
-            { _id: user._id },
-            'very-secret-key',
-          );
-          res.cookie('jwt', token, {
-            maxAge: 3600000 * 24 * 7,
-            httpOnly: true,
-            sameSite: true,
-          })
-            .send({
-              name: user.name,
-              about: user.about,
-              avatar: user.avatar,
-              email: user.email,
-              _id: user._id,
-            });
-        })
-        .catch(next);
+      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'very-secret-key', { expiresIn: '7d' });
+      res.cookie('jwt', token, {
+        maxAge: 3600000 * 24 * 7,
+        httpOnly: true,
+        sameSite: true,
+      });
+      res.status(200).send({ message: 'Авторизация прошла успешно.' });
     })
     .catch(next);
 };
