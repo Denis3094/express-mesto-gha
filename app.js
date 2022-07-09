@@ -1,5 +1,6 @@
 const express = require('express');
 const { mongoose } = require('mongoose');
+const helmet = require('helmet');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const { Joi, celebrate, errors } = require('celebrate');
@@ -20,6 +21,7 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   family: 4,
 });
 
+app.use(helmet());
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -44,9 +46,9 @@ app.use('/users', auth, usersRouter);
 app.use('/cards', auth, cardsRouter);
 
 app.use((req, res, next) => {
-  next(new NotFound('Страницы не существует!'));
+  next(new NotFound('Страницы не существует.'));
 });
-app.use(errors({ message: 'Переданы некорректные данные!' }));
+app.use(errors({ message: 'Переданы некорректные данные.' }));
 app.use(handleError);
 
 app.listen(PORT, () => {
